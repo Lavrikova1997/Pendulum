@@ -74,9 +74,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pendulum.cpp" />
+    <ClCompile Include="Gearbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Const.h" />
+    <ClInclude Include="Gearbox.h" />
     <ClInclude Include="Pendulum.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

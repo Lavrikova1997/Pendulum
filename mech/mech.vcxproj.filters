@@ -17,12 +17,18 @@
     <ClCompile Include="Pendulum.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gearbox.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pendulum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Const.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gearbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,28 +1,40 @@
 #include "Const.h"
 #include "Pendulum.h"
+#include "Gearbox.h"
 
-void iniGears(RectangleShape & gear1, RectangleShape & gear2, RectangleShape & gearPendulum,
-	Texture & gearTexture, Texture & pendulumGearTexture)
+void process(Clock & clock, StatePendulum & state, Gearbox & gearSet, Pendulum & pendulum)
 {
-		gear1.setTexture(&gearTexture);
-		gear1.setOrigin(5 * GEAR_SIZE, 5 * GEAR_SIZE);
-		gear1.setPosition(5 * GEAR_SIZE, 5 * GEAR_SIZE);
+	Time timer = clock.getElapsedTime();
+	float time = timer.asSeconds();
 
-		gear2.setTexture(&gearTexture);
-		gear2.setOrigin(5 * GEAR_SIZE, 5 * GEAR_SIZE);
-		gear2.setPosition(11.5 * GEAR_SIZE, 11.5 * GEAR_SIZE);
-
-		gearPendulum.setTexture(&pendulumGearTexture);
-		gearPendulum.setOrigin(7.5 * GEAR_SIZE, 7.5 * GEAR_SIZE);
-		gearPendulum.setPosition(11.5 * GEAR_SIZE, 11.5 * GEAR_SIZE);
-
-}
-
-void rotateGears(RectangleShape & gear1, RectangleShape & gear2, RectangleShape & gearPendulum)
-{
-		gear1.rotate(GEARS_ROTATE);
-		gear2.rotate(-GEARS_ROTATE);
-		gearPendulum.rotate(-GEARS_ROTATE);
+	if (state == Pendulum_Left)
+	{
+		RotatePendulum(pendulum, time, state);
+		if (time < PENDULUM_PERIOD - STOPPED_GEARS_TIME)
+		{
+			rotateGears(gearSet);
+		}
+		if (time > PENDULUM_PERIOD)
+		{
+			PendulumSetAngle(pendulum, MAX_ANGLE);
+			state = Pendulum_Rigth;
+			clock.restart();
+		}
+	}
+	else if (state == Pendulum_Rigth)
+	{
+		RotatePendulum(pendulum, time, state);
+		if (time > STOPPED_GEARS_TIME && time < PENDULUM_PERIOD - STOPPED_GEARS_TIME)
+		{
+			rotateGears(gearSet);
+		}
+		if (time > PENDULUM_PERIOD)
+		{
+			PendulumSetAngle(pendulum, -MAX_ANGLE);
+			state = Pendulum_Left;
+			clock.restart();
+		}
+	}
 }
 
 int main()
@@ -30,24 +42,21 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 8;
 	sf::RenderWindow window(sf::VideoMode(500, 600), "Pendulum", Style::Default, settings);
-
+	
 	Texture gearTexture;
 	Texture pendulumGearTexture;
 	gearTexture.loadFromFile("gear.png");
 	pendulumGearTexture.loadFromFile("pendulumGear.png");
 	
-	RectangleShape gear1(Vector2f(10 * GEAR_SIZE, 10 * GEAR_SIZE));
-	RectangleShape gear2(Vector2f(10 * GEAR_SIZE, 10 * GEAR_SIZE));
-	RectangleShape gearPendulum(Vector2f(15 * GEAR_SIZE, 15 * GEAR_SIZE));
-
-	iniGears(gear1, gear2, gearPendulum, gearTexture, pendulumGearTexture);
+	Gearbox gearSet;
+	iniGearbox(gearSet, gearTexture, pendulumGearTexture);
 
 	Pendulum pendulum;
 	iniPendulum(pendulum);
 	
-
 	Clock clock;
 	StatePendulum statePendulum = Pendulum_Left;
+
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -56,47 +65,19 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-		Time timer = clock.getElapsedTime();
-		float time = timer.asSeconds();
-	
-		if (statePendulum == Pendulum_Left)
-		{
-			RotatePendulum(pendulum, time, statePendulum);
-			if (time < PENDULUM_PERIOD - STOPPED_GEARS_TIME)
-			{
-				rotateGears(gear1, gear2, gearPendulum);
-			}
-			if (time > PENDULUM_PERIOD)
-			{
-				PendulumSetAngle(pendulum, MAX_ANGLE);
-				statePendulum = Pendulum_Rigth;
-				clock.restart();
-			}
-		}
-		else if (statePendulum == Pendulum_Rigth)
-		{
-			RotatePendulum(pendulum, time, statePendulum);
-			if (time > STOPPED_GEARS_TIME && time < PENDULUM_PERIOD - STOPPED_GEARS_TIME)
-			{
-				rotateGears(gear1, gear2, gearPendulum);
-			}
-			if (time > PENDULUM_PERIOD)
-			{
-				PendulumSetAngle(pendulum, -MAX_ANGLE);
-				statePendulum = Pendulum_Left;
-				clock.restart();
-			}
-		}
+
+		process(clock, statePendulum, gearSet, pendulum);
 
 		window.clear();
 
 		DrawPendulum(pendulum, window);
-		window.draw(gearPendulum);
-		window.draw(gear1);
-		window.draw(gear2);
+		DrawGearbox(gearSet, window);
 
 		window.display();
 	}
+
 	dispPendulum(pendulum);
+	dispGearbox(gearSet);
+
 	return 0;
 }
